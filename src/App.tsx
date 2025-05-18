@@ -1,13 +1,8 @@
-import { useState } from 'react';
-import logo from './assets/images/#';
+
+import AppRouter from './router/AppRoutes'
 
 const App = () => {
-  const [count, setCount] = useState(0);
-
-  return (
-    <>
-    </>
-  );
+  return <AppRouter />
 };
 
 export default App;
