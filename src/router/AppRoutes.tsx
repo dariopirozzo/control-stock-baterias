@@ -1,16 +1,18 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import LoginPage from '../pages/LoginPage';
-import HomePage from '../pages/HomePage';
+// src/router/AppRoutes.tsx
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Login from '../components/Login';
+import Dashboard from '../components/Dashboard';
 
-const AppRouter = () => {
+function AppRoutes() {
   return (
-    <BrowserRouter>
+    <Router>
       <Routes>
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/" element={<LoginPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        {/* otras rutas */}
       </Routes>
-    </BrowserRouter>
+    </Router>
   );
-};
+}
 
-export default AppRouter;
+export default AppRoutes;
