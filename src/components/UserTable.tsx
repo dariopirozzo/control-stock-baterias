@@ -10,26 +10,44 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 type Guarantee = {
   id: number;
-  cliente: string;
+  apellido: string;
+  nombre: string;
+  telefono: string;
   producto: string;
-  fechaVenta: string;
-  fechaGarantia: string;
+  codigoProducto: string;
+  fechaCompra: string;
+  fechaDelDia: string;
+  observaciones: string;
   estado: string;
 };
 
 const estados = ['Activa', 'Expirada', 'En revisión'];
-
 const initialRows: Guarantee[] = [];
+
+const camposFiltro = [
+  { label: 'Apellido', value: 'apellido' },
+  { label: 'Nombre', value: 'nombre' },
+  { label: 'Teléfono', value: 'telefono' },
+  { label: 'Producto', value: 'producto' },
+  { label: 'Código de Producto', value: 'codigoProducto' },
+  { label: 'Estado', value: 'estado' },
+];
 
 const UserTable: React.FC = () => {
   const [rows, setRows] = useState(initialRows);
   const [editRowId, setEditRowId] = useState<number | null>(null);
   const [editData, setEditData] = useState<Partial<Guarantee>>({});
+  const [searchText, setSearchText] = useState('');
+  const [filterField, setFilterField] = useState<string>('apellido');
   const [newGuarantee, setNewGuarantee] = useState<Partial<Guarantee>>({
-    cliente: '',
+    apellido: '',
+    nombre: '',
+    telefono: '',
     producto: '',
-    fechaVenta: '',
-    fechaGarantia: '',
+    codigoProducto: '',
+    fechaCompra: '',
+    fechaDelDia: new Date().toISOString().split('T')[0],
+    observaciones: '',
     estado: 'Activa'
   });
 
@@ -38,8 +56,22 @@ const UserTable: React.FC = () => {
     setEditData(row);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEditData({ ...editData, [e.target.name]: e.target.value });
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    if (name === 'estado') {
+      setEditData({ ...editData, [name]: value }); // sin toUpperCase para estado
+    } else {
+      setEditData({ ...editData, [name]: value.toUpperCase() });
+    }
+  };
+
+  const handleNewChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    if (name === 'estado') {
+      setNewGuarantee({ ...newGuarantee, [name]: value });
+    } else {
+      setNewGuarantee({ ...newGuarantee, [name]: value.toUpperCase() });
+    }
   };
 
   const handleSaveClick = () => {
@@ -58,79 +90,94 @@ const UserTable: React.FC = () => {
     }
   };
 
-  const handleNewChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewGuarantee({ ...newGuarantee, [e.target.name]: e.target.value });
-  };
-
   const handleAddGuarantee = () => {
-    if (
-      !newGuarantee.cliente ||
-      !newGuarantee.producto ||
-      !newGuarantee.fechaVenta ||
-      !newGuarantee.fechaGarantia
-    ) {
-      alert('Todos los campos son obligatorios');
-      return;
+    const requiredFields = ['apellido', 'nombre', 'telefono', 'producto', 'codigoProducto', 'fechaCompra'];
+    for (const field of requiredFields) {
+      if (!newGuarantee[field as keyof Guarantee]) {
+        alert('Todos los campos son obligatorios');
+        return;
+      }
     }
 
     const newRow: Guarantee = {
       ...(newGuarantee as Guarantee),
-      id: Date.now()
+      id: Date.now(),
+      fechaDelDia: new Date().toISOString().split('T')[0]
     };
 
     setRows((prev) => [...prev, newRow]);
     setNewGuarantee({
-      cliente: '',
+      apellido: '',
+      nombre: '',
+      telefono: '',
       producto: '',
-      fechaVenta: '',
-      fechaGarantia: '',
+      codigoProducto: '',
+      fechaCompra: '',
+      fechaDelDia: new Date().toISOString().split('T')[0],
+      observaciones: '',
       estado: 'Activa'
     });
   };
 
+  // Filtrado según campo seleccionado y texto
+  const filteredRows = rows.filter(row => {
+    const valorCampo = (row as any)[filterField];
+    if (!valorCampo) return false;
+    return valorCampo.toUpperCase().includes(searchText.toUpperCase());
+  });
+
   return (
     <Box>
+      {/* Filtros */}
+      <Box display="flex" gap={2} mb={2} alignItems="center">
+        <TextField
+          select
+          label="Filtrar por"
+          value={filterField}
+          onChange={(e) => setFilterField(e.target.value)}
+          size="small"
+          sx={{ width: 180 }}
+        >
+          {camposFiltro.map(({ label, value }) => (
+            <MenuItem key={value} value={value}>{label}</MenuItem>
+          ))}
+        </TextField>
+
+        <TextField
+          label="Buscar"
+          variant="outlined"
+          size="small"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value.toUpperCase())}
+          sx={{ flexGrow: 1 }}
+        />
+      </Box>
+
       {/* Formulario para nueva garantía */}
       <Box
         display="flex"
         gap={2}
         p={2}
         component={Paper}
-        alignItems="center"
+        alignItems="flex-start"
         flexWrap="wrap"
         mb={2}
       >
+        <TextField label="Apellido" name="apellido" value={newGuarantee.apellido} onChange={handleNewChange} size="small" />
+        <TextField label="Nombre" name="nombre" value={newGuarantee.nombre} onChange={handleNewChange} size="small" />
+        <TextField label="Teléfono" name="telefono" value={newGuarantee.telefono} onChange={handleNewChange} size="small" />
+        <TextField label="Producto" name="producto" value={newGuarantee.producto} onChange={handleNewChange} size="small" />
+        <TextField label="Código de Producto" name="codigoProducto" value={newGuarantee.codigoProducto} onChange={handleNewChange} size="small" />
+        <TextField label="Fecha de Compra" name="fechaCompra" type="date" value={newGuarantee.fechaCompra} onChange={handleNewChange} size="small" InputLabelProps={{ shrink: true }} />
         <TextField
-          label="Cliente"
-          name="cliente"
-          value={newGuarantee.cliente}
+          label="Observaciones"
+          name="observaciones"
+          value={newGuarantee.observaciones}
           onChange={handleNewChange}
           size="small"
-        />
-        <TextField
-          label="Producto"
-          name="producto"
-          value={newGuarantee.producto}
-          onChange={handleNewChange}
-          size="small"
-        />
-        <TextField
-          label="Fecha Venta"
-          name="fechaVenta"
-          type="date"
-          value={newGuarantee.fechaVenta}
-          onChange={handleNewChange}
-          size="small"
-          InputLabelProps={{ shrink: true }}
-        />
-        <TextField
-          label="Fecha Garantía"
-          name="fechaGarantia"
-          type="date"
-          value={newGuarantee.fechaGarantia}
-          onChange={handleNewChange}
-          size="small"
-          InputLabelProps={{ shrink: true }}
+          multiline
+          rows={3}
+          sx={{ minWidth: 200 }}
         />
         <TextField
           select
@@ -139,16 +186,13 @@ const UserTable: React.FC = () => {
           value={newGuarantee.estado}
           onChange={handleNewChange}
           size="small"
+          sx={{ minWidth: 120 }}
         >
           {estados.map((estado) => (
-            <MenuItem key={estado} value={estado}>
-              {estado}
-            </MenuItem>
+            <MenuItem key={estado} value={estado}>{estado}</MenuItem>
           ))}
         </TextField>
-        <Button variant="contained" onClick={handleAddGuarantee}>
-          Agregar
-        </Button>
+        <Button variant="contained" onClick={handleAddGuarantee}>Agregar</Button>
       </Box>
 
       {/* Tabla de garantías */}
@@ -156,88 +200,73 @@ const UserTable: React.FC = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Cliente</TableCell>
+              <TableCell>Apellido</TableCell>
+              <TableCell>Nombre</TableCell>
+              <TableCell>Teléfono</TableCell>
               <TableCell>Producto</TableCell>
-              <TableCell>Fecha Venta</TableCell>
-              <TableCell>Fecha Garantía</TableCell>
+              <TableCell>Código</TableCell>
+              <TableCell>Fecha Compra</TableCell>
+              <TableCell>Fecha Registro</TableCell>
+              <TableCell>Observaciones</TableCell>
               <TableCell>Estado</TableCell>
               <TableCell>Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map((row) => (
+            {filteredRows.map((row) => (
               <TableRow key={row.id}>
                 {editRowId === row.id ? (
                   <>
+                    <TableCell><TextField name="apellido" value={editData.apellido} onChange={handleInputChange} size="small" /></TableCell>
+                    <TableCell><TextField name="nombre" value={editData.nombre} onChange={handleInputChange} size="small" /></TableCell>
+                    <TableCell><TextField name="telefono" value={editData.telefono} onChange={handleInputChange} size="small" /></TableCell>
+                    <TableCell><TextField name="producto" value={editData.producto} onChange={handleInputChange} size="small" /></TableCell>
+                    <TableCell><TextField name="codigoProducto" value={editData.codigoProducto} onChange={handleInputChange} size="small" /></TableCell>
+                    <TableCell><TextField name="fechaCompra" type="date" value={editData.fechaCompra} onChange={handleInputChange} size="small" /></TableCell>
+                    <TableCell>{row.fechaDelDia}</TableCell>
                     <TableCell>
                       <TextField
-                        name="cliente"
-                        value={editData.cliente}
+                        name="observaciones"
+                        value={editData.observaciones}
                         onChange={handleInputChange}
                         size="small"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <TextField
-                        name="producto"
-                        value={editData.producto}
-                        onChange={handleInputChange}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <TextField
-                        name="fechaVenta"
-                        type="date"
-                        value={editData.fechaVenta}
-                        onChange={handleInputChange}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <TextField
-                        name="fechaGarantia"
-                        type="date"
-                        value={editData.fechaGarantia}
-                        onChange={handleInputChange}
-                        size="small"
+                        multiline
+                        rows={3}
+                        sx={{ minWidth: 200 }}
                       />
                     </TableCell>
                     <TableCell>
                       <TextField
                         select
                         name="estado"
-                        value={editData.estado}
+                        value={editData.estado || estados[0]}
                         onChange={handleInputChange}
                         size="small"
+                        sx={{ minWidth: 120 }}
                       >
                         {estados.map((estado) => (
-                          <MenuItem key={estado} value={estado}>
-                            {estado}
-                          </MenuItem>
+                          <MenuItem key={estado} value={estado}>{estado}</MenuItem>
                         ))}
                       </TextField>
                     </TableCell>
                     <TableCell>
-                      <IconButton onClick={handleSaveClick}>
-                        <SaveIcon sx={{ color: '#2e7d32' }} />
-                      </IconButton>
+                      <IconButton onClick={handleSaveClick}><SaveIcon sx={{ color: '#2e7d32' }} /></IconButton>
                     </TableCell>
                   </>
                 ) : (
                   <>
-                    <TableCell>{row.cliente}</TableCell>
+                    <TableCell>{row.apellido}</TableCell>
+                    <TableCell>{row.nombre}</TableCell>
+                    <TableCell>{row.telefono}</TableCell>
                     <TableCell>{row.producto}</TableCell>
-                    <TableCell>{row.fechaVenta}</TableCell>
-                    <TableCell>{row.fechaGarantia}</TableCell>
+                    <TableCell>{row.codigoProducto}</TableCell>
+                    <TableCell>{row.fechaCompra}</TableCell>
+                    <TableCell>{row.fechaDelDia}</TableCell>
+                    <TableCell>{row.observaciones}</TableCell>
                     <TableCell>{row.estado}</TableCell>
                     <TableCell>
-                      <IconButton onClick={() => handleEditClick(row)}>
-                        <EditIcon sx={{ color: '#1976d2' }} />
-                      </IconButton>
-                      <IconButton onClick={() => handleDeleteClick(row.id)}>
-                        <DeleteIcon sx={{ color: '#d32f2f' }} />
-                      </IconButton>
+                      <IconButton onClick={() => handleEditClick(row)}><EditIcon sx={{ color: '#1976d2' }} /></IconButton>
+                      <IconButton onClick={() => handleDeleteClick(row.id)}><DeleteIcon sx={{ color: '#d32f2f' }} /></IconButton>
                     </TableCell>
                   </>
                 )}

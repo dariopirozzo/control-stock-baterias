@@ -15,7 +15,7 @@ const Dashboard: React.FC = () => {
   return (
     <Container maxWidth="lg">
       <Box display="flex" justifyContent="space-between" alignItems="center" my={4}>
-        <Typography variant="h4">¡Bienvenido al Dashboard!</Typography>
+        <Typography variant="h4">¡Bienvenido a BatteryTrack!</Typography>
         <Button variant="contained" color="secondary" onClick={handleLogout}>
           Cerrar sesión
         </Button>

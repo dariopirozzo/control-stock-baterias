@@ -1,4 +1,3 @@
-// src/components/Login.tsx
 import React from 'react';
 import {
   Box,
@@ -24,6 +23,8 @@ const validationSchema = Yup.object().shape({
     .min(6, 'La contraseña debe tener al menos 6 caracteres'),
 });
 
+const STORAGE_KEY = 'usuariosApp';
+
 const Login: React.FC = () => {
   const navigate = useNavigate();
 
@@ -36,8 +37,23 @@ const Login: React.FC = () => {
   });
 
   const onSubmit = (data: LoginFormInputs) => {
-    console.log('Datos enviados:', data);
-    // Aquí iría la lógica de autenticación (API, JWT, etc.)
+    const usuariosJson = localStorage.getItem(STORAGE_KEY);
+    if (!usuariosJson) {
+      alert('No hay usuarios registrados. Contacta al administrador.');
+      return;
+    }
+
+    const usuarios = JSON.parse(usuariosJson) as { nickname: string; password: string }[];
+    const usuarioValido = usuarios.find(
+      (u) => u.nickname === data.nickname && u.password === data.password
+    );
+
+    if (!usuarioValido) {
+      alert('Usuario o contraseña incorrectos');
+      return;
+    }
+
+    // Usuario validado, navega al dashboard
     navigate('/dashboard');
   };
 
