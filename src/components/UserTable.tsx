@@ -58,20 +58,12 @@ const UserTable: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    if (name === 'estado') {
-      setEditData({ ...editData, [name]: value }); // sin toUpperCase para estado
-    } else {
-      setEditData({ ...editData, [name]: value.toUpperCase() });
-    }
+    setEditData({ ...editData, [name]: name === 'estado' ? value : value.toUpperCase() });
   };
 
   const handleNewChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    if (name === 'estado') {
-      setNewGuarantee({ ...newGuarantee, [name]: value });
-    } else {
-      setNewGuarantee({ ...newGuarantee, [name]: value.toUpperCase() });
-    }
+    setNewGuarantee({ ...newGuarantee, [name]: name === 'estado' ? value : value.toUpperCase() });
   };
 
   const handleSaveClick = () => {
@@ -119,16 +111,27 @@ const UserTable: React.FC = () => {
     });
   };
 
-  // Filtrado según campo seleccionado y texto
   const filteredRows = rows.filter(row => {
     const valorCampo = (row as any)[filterField];
     if (!valorCampo) return false;
     return valorCampo.toUpperCase().includes(searchText.toUpperCase());
   });
 
+  const getEstadoStyle = (estado: string) => {
+    switch (estado) {
+      case 'Activa':
+        return { backgroundColor: 'green', color: 'white' };
+      case 'Expirada':
+        return { backgroundColor: 'red', color: 'white' };
+      case 'En revisión':
+        return { backgroundColor: 'yellow', color: 'black' };
+      default:
+        return {};
+    }
+  };
+
   return (
     <Box>
-      {/* Filtros */}
       <Box display="flex" gap={2} mb={2} alignItems="center">
         <TextField
           select
@@ -153,7 +156,6 @@ const UserTable: React.FC = () => {
         />
       </Box>
 
-      {/* Formulario para nueva garantía */}
       <Box
         display="flex"
         gap={2}
@@ -195,7 +197,6 @@ const UserTable: React.FC = () => {
         <Button variant="contained" onClick={handleAddGuarantee}>Agregar</Button>
       </Box>
 
-      {/* Tabla de garantías */}
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -263,7 +264,9 @@ const UserTable: React.FC = () => {
                     <TableCell>{row.fechaCompra}</TableCell>
                     <TableCell>{row.fechaDelDia}</TableCell>
                     <TableCell>{row.observaciones}</TableCell>
-                    <TableCell>{row.estado}</TableCell>
+                    <TableCell sx={{ ...getEstadoStyle(row.estado), fontWeight: 'bold', textAlign: 'center' }}>
+                      {row.estado}
+                    </TableCell>
                     <TableCell>
                       <IconButton onClick={() => handleEditClick(row)}><EditIcon sx={{ color: '#1976d2' }} /></IconButton>
                       <IconButton onClick={() => handleDeleteClick(row.id)}><DeleteIcon sx={{ color: '#d32f2f' }} /></IconButton>
